@@ -25,6 +25,14 @@ public class GamePlay {
 	private ArrayList<Card> CommonCards = new ArrayList<Card>();
 	private Deck GameDeck;
 
+	private Player getPlayerFromGamePlayers(UUID PlayerID) {
+		for(Player p : GamePlayers) {
+			if(p.getPlayerID() == PlayerID) {
+				return p;
+			}
+		}
+		return null;
+	}
 	/**
 	 * GamePlay - Create an instance of GamePlay. For every player in the table, add
 	 * them to the game Set the GameDeck.
@@ -280,8 +288,22 @@ public class GamePlay {
 	 */
 	private ArrayList<HandPoker> getBestMadeHands() throws HandException
 	{
-		//TODO: Return the best made hands in the game
+
 		ArrayList<HandPoker> BestGameHands = new ArrayList<HandPoker>();
+		
+		Iterator<Map.Entry<UUID, HandPoker>> itr = GameHand.entrySet().iterator();
+		while (itr.hasNext()) {
+			Map.Entry<UUID, HandPoker> entry = itr.next();
+			Player GP = null;
+			for (Player p : GamePlayers) {
+				if(p.getPlayerID() == (UUID)entry.getKey()) {
+				GP = p;
+				break;
+				}
+			}
+			BestGameHands.addAll(getBestMadeHands(GP));
+		}
+		BestGameHands.sort(HandPoker.hpComparator);
 		return BestGameHands;
 	}
 	
@@ -295,8 +317,8 @@ public class GamePlay {
 	 */
 	public HandScorePoker getWinningScore() throws HandException
 	{
-		//TODO: return the best made hand's hand score
-		return null;
+		
+		return getBestMadeHands().get(0).getHandScorePoker();
 	}
 	
 	/**
@@ -312,8 +334,20 @@ public class GamePlay {
 	public ArrayList<Player> GetGameWinners() throws HandException {
 		
 		ArrayList<Player> WinningPlayers = new ArrayList<Player>();
-		//TODO: Return an array list of the winning players in the game
+
+		HandScorePoker WinningHSP = getWinningScore();
+		
+		Iterator<Map.Entry<UUID, HandPoker>> itr = GameHand.entrySet().iterator();
+		while (itr.hasNext()) {
+			Map.Entry<UUID, HandPoker> entry = itr.next();
+			Player p = getPlayerFromGamePlayers(entry.getKey());
+			ArrayList<HandPoker> HP = getBestMadeHands(p);
+
+			if(HP.get(0).getHandScorePoker().equals(WinningHSP)) {
+				WinningPlayers.add(p);
+			}
+		}
+		
 		return WinningPlayers;
 	}
-
 }
